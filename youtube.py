@@ -2,38 +2,51 @@ import telebot
 from telebot import types
 import yt_dlp
 import os
+import sys
+
+# سحب التوكن من متغيرات البيئة لحمايته وإخفائه تماماً عن GitHub
+API_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+
+# التحقق من وجود التوكن لمنع تشغيل البوت بدون إعدادات صحيحة
+if not API_TOKEN:
+    print("❌ خطأ: لم يتم العثور على متغير البيئة TELEGRAM_BOT_TOKEN!")
+    print("تأكد من إضافة التوكن في إعدادات Render أو البيئة المحلية لديك قبل التشغيل.")
+    sys.exit(1)
+
 bot = telebot.TeleBot(API_TOKEN)
 os.makedirs('downloads', exist_ok=True)
+
 # قاموس النصوص لدعم اللغات الثلاث (العربية، الإنجليزية، الأمهرية)
 STRINGS = {
     'ar': {
-        'invalid': '❌ أمر غير صالح.',
-        'welcome': '👋 أهلاً بك في بوت تحميل فيديوهات يوتيوب! الرجاء اختيار اللغة:',
+        'invalid': '❌ أمر غير صالح أو رابط غير مدعوم.',
+        'welcome': '👋 أهلاً بك في بوت تحميل فيديوهات يوتيوب وتيك توك! الرجاء اختيار اللغة:',
         'preparing_video': '⏳ جاري تجهيز الفيديو للتحميل، يرجى الانتظار...',
         'download_success': '✅ تم تحميل الفيديو بنجاح!',
         'download_audio_success': '✅ تم تحميل الصوت بنجاح!',
-        'video_info': '📊 *معلومات الفيديو:*\n\n👁‍🗨 المشاهدات: {views}\n👤 المشتركون: {subscribers}',
+        'video_info': '📊 *معلومات الفيديو:*\n\n👁‍🗨 المشاهدات: {views}\n👤 المشتركون/المتابعون: {subscribers}',
         'choose_format': '🎬 اختر صيغة التحميل المطلوبة:'
     },
     'en': {
-        'invalid': '❌ Invalid command.',
-        'welcome': '👋 Welcome to YouTube Downloader Bot! Please choose your language:',
+        'invalid': '❌ Invalid command or unsupported link.',
+        'welcome': '👋 Welcome to Video Downloader Bot! Please choose your language:',
         'preparing_video': '⏳ Preparing video for download, please wait...',
         'download_success': '✅ Video downloaded successfully!',
         'download_audio_success': '✅ Audio downloaded successfully!',
-        'video_info': '📊 *Video Info:*\n\n👁‍🗨 Views: {views}\n👤 Subscribers: {subscribers}',
+        'video_info': '📊 *Video Info:*\n\n👁‍🗨 Views: {views}\n👤 Subscribers/Followers: {subscribers}',
         'choose_format': '🎬 Choose the download format:'
     },
     'am': {
-        'invalid': '❌ ልክ ያልሆነ ትዕዛዝ።',
-        'welcome': '👋 ወደ ዩቲዩብ ቪዲዮ ማውረጃ ቦት በደህና መጡ! እባክዎ ቋንቋዎን ይምረጡ:',
+        'invalid': '❌ ልክ ያልሆነ ትዕዛዝ ወይም የማይደገፍ ሊንክ።',
+        'welcome': '👋 ወደ ቪዲዮ ማውረጃ ቦት በደህና መጡ! እባክዎ ቋንቋዎን ይምረጡ:',
         'preparing_video': '⏳ ቪዲዮው ለማውረድ በመዘጋጀት ላይ ነው፣ እባክዎ ይጠብቁ...',
         'download_success': '✅ ቪዲዮው በተሳካ ሁኔታ ወርዷል!',
         'download_audio_success': '✅ ድምፁ በተሳካ ሁኔታ ወርዷል!',
         'video_info': '📊 *የቪዲዮ መረጃ:*\n\n👁‍🗨 ዕይታዎች: {views}\n👤 ተከታዮች: {subscribers}',
-        'choose_format': '🎬 እባክዎ የማውረጃ ቅርጸት ይምረጡ:'  
+        'choose_format': '🎬 እባክዎ የማውረጃ ቅርጸት ይምረጡ:'
     }
 }
+
 # تخزين لغة المستخدم بشكل مؤقت
 user_lang = {}
 # تخزين رابط الفيديو لكل مستخدم لتسهيل عملية التحميل لاحقاً
@@ -59,7 +72,8 @@ def handle_video_link(message):
     lang = user_lang[chat_id]
     url = message.text
     
-    if "youtube.com" in url or "youtu.be" in url:
+    # دعم روابط يوتيوب وتيك توك تلقائياً
+    if "youtube.com" in url or "youtu.be" in url or "tiktok.com" in url:
         user_links[chat_id] = url
         
         # إنشاء أزرار منفصلة لتحميل الفيديو أو الصوت
@@ -116,7 +130,7 @@ def callback_query_handler(call):
                 video_file = ydl.prepare_filename(info)
                 
                 views = info.get('view_count', 'N/A')
-                subscribers = info.get('channel_follower_count', 'N/A') # جلب عدد المشتركين للقناة
+                subscribers = info.get('channel_follower_count', info.get('follower_count', 'N/A'))
                 
                 # إرسال الإحصائيات للمستخدم أولاً
                 stats_text = STRINGS[lang]['video_info'].format(views=views, subscribers=subscribers)
