@@ -2,12 +2,8 @@ import telebot
 from telebot import types
 import yt_dlp
 import os
-
-# ضع توكن البوت الخاص بك هنا
-API_TOKEN="8901446746:AAHa5fKeJBLMCAsGS2VCAJuamXM9kMRvTaQ"
 bot = telebot.TeleBot(API_TOKEN)
 os.makedirs('downloads', exist_ok=True)
-
 # قاموس النصوص لدعم اللغات الثلاث (العربية، الإنجليزية، الأمهرية)
 STRINGS = {
     'ar': {
@@ -35,10 +31,9 @@ STRINGS = {
         'download_success': '✅ ቪዲዮው በተሳካ ሁኔታ ወርዷል!',
         'download_audio_success': '✅ ድምፁ በተሳካ ሁኔታ ወርዷል!',
         'video_info': '📊 *የቪዲዮ መረጃ:*\n\n👁‍🗨 ዕይታዎች: {views}\n👤 ተከታዮች: {subscribers}',
-        'choose_format': '🎬 እባክዎ የማውረጃ ቅርጸት ይምረጡ:'
+        'choose_format': '🎬 እባክዎ የማውረጃ ቅርጸት ይምረጡ:'  
     }
 }
-
 # تخزين لغة المستخدم بشكل مؤقت
 user_lang = {}
 # تخزين رابط الفيديو لكل مستخدم لتسهيل عملية التحميل لاحقاً
